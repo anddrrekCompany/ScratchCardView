@@ -65,6 +65,9 @@ class ScratchCardViewController: UIViewController {
 }
 
 extension ScratchCardViewController: ScratchCardViewDelegate, UITableViewDelegate {
+    func scratchCardView(_ view: ScratchCardView, didUpdateScratchPercentage percentage: Double) {
+        print("progress \(percentage)")
+    }
     
     func coverView(for scratchCardView: ScratchCardView) -> UIView {
         return scratchCards[currentIndex].coverView

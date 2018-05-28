@@ -9,7 +9,7 @@
 import UIKit
 
 protocol CanvasViewDelegate: class {
-    
+    func canvasViewDidHandlePan()
     func canvasViewDidStartDrawing(_ view: CanvasView, at point: CGPoint)
     func canvasViewDidAddLine(_ view: CanvasView, to point: CGPoint)
     func canvasViewDidEndDrawing(_ view: CanvasView)
@@ -58,7 +58,7 @@ class CanvasView: UIView {
     
     @objc func panGestureRecognized(_ recognizer: UIPanGestureRecognizer) {
         let point = recognizer.location(in: self)
-        
+        delegate?.canvasViewDidHandlePan()
         switch recognizer.state {
         case .began:
             pendingPath = UIBezierPath()

@@ -42,6 +42,14 @@ import UIKit
     ///
     /// - Parameter view: The scratch card
     @objc optional func scratchCardViewDidEndScratching(_ view: ScratchCardView)
+    
+    
+    /// Called when update scratching progress
+    ///
+    /// - Parameters:
+    ///   - view: The scratch card
+    ///   - percentage: The value of scratchPercent
+    @objc optional func scratchCardView(_ view: ScratchCardView, didUpdateScratchPercentage percentage: Double)
 }
 
 /// The ScratchCardView
@@ -133,7 +141,13 @@ open class ScratchCardView: UIView {
     private func getScratchPercent() -> Double {
         // Since the transparency is inverted, the cover view gets transparent if the mask is not transparent
         // So we need to check how many pixels are NOT transparent in the mask
-        return (1.0 - canvasMaskView.getTransparentPixelsPercent())
+        let value = (1.0 - canvasMaskView.getTransparentPixelsPercent())
+        return value
+    }
+    
+    fileprivate func observeProgress() {
+        let progress = getScratchPercent()
+        delegate?.scratchCardView?(self, didUpdateScratchPercentage: progress)
     }
     
     // MARK: Public Methods
@@ -159,6 +173,9 @@ open class ScratchCardView: UIView {
 }
 
 extension ScratchCardView: CanvasViewDelegate, UITableViewDelegate {
+    func canvasViewDidHandlePan() {
+        observeProgress()
+    }
     
     func canvasViewDidStartDrawing(_ view: CanvasView, at point: CGPoint) {
         delegate?.scratchCardView?(self, didStartScratchingAt: point)
