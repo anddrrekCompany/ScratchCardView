@@ -24,8 +24,8 @@ class CanvasView: UIView {
     @IBInspectable var lineWidth: CGFloat = 10
     @IBInspectable var strokeColor = UIColor.black
     
-    fileprivate var paths: [CGMutablePath] = []
-    fileprivate var currentPath: CGMutablePath?
+    private var pathes = [UIBezierPath]()
+    private var pendingPath: UIBezierPath?
     
     // MARK: Lifecycle
     
@@ -45,52 +45,37 @@ class CanvasView: UIView {
         let context = UIGraphicsGetCurrentContext()
         context?.setStrokeColor(strokeColor.cgColor)
         context?.setLineWidth(lineWidth)
-        for path in paths + [currentPath].flatMap({$0}) {
-            context?.addPath(path)
-            context?.strokePath()
+       
+        for path in pathes {
+            path.lineJoinStyle = .round
+            path.lineCapStyle = .round
+            path.lineWidth = self.lineWidth
+            path.stroke()
         }
     }
     
     // MARK: Actions
     
     @objc func panGestureRecognized(_ recognizer: UIPanGestureRecognizer) {
-        let location = recognizer.location(in: self)
+        let point = recognizer.location(in: self)
         
         switch recognizer.state {
         case .began:
-            beginPath(at: location)
-            delegate?.canvasViewDidStartDrawing(self, at: location)
+            pendingPath = UIBezierPath()
+            pendingPath?.move(to: point)
+            pathes.append(pendingPath!)
+            delegate?.canvasViewDidStartDrawing(self, at: point)
         case .changed:
-            addLine(to: location)
-            delegate?.canvasViewDidAddLine(self, to: location)
+            pendingPath?.addLine(to: point)
+            delegate?.canvasViewDidAddLine(self, to: point)
         default:
-            closePath()
             delegate?.canvasViewDidEndDrawing(self)
         }
-    }
-    
-    // MARK: Public methods
-    
-    func beginPath(at point: CGPoint) {
-        currentPath = CGMutablePath()
-        currentPath?.move(to: point)
-    }
-    
-    func addLine(to point: CGPoint) {
-        currentPath?.addLine(to: point)
-        setNeedsDisplay()
-    }
-    
-    func closePath() {
-        if let currentPath = currentPath {
-            paths.append(currentPath)
-        }
-        currentPath = nil
         setNeedsDisplay()
     }
     
     func clear() {
-        paths = []
+        pathes = []
         setNeedsDisplay()
     }
     
